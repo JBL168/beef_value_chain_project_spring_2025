@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import re
+import regex as re
 
 # function to parse the txt file for relevant data
 def parse_usda_file(filepath):
@@ -8,7 +8,7 @@ def parse_usda_file(filepath):
         contents = file.read()
 
         # extract date
-        week_match = re.search(r'WEEK ENDING\s+(\d{2}/\d{2}/\d{4})', contents)
+        week_match = re.search(r'WEEK\s*ENDING\s*.*?(\d{2}/\d{2}/\d{4})', contents)
         week_ending_date = week_match.group(1) if week_match else None
 
         # extract sale data   r'This Week:\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)'
@@ -25,17 +25,29 @@ def parse_usda_file(filepath):
             national_auctions = None
             national_total = None
 
-        # extract block of text after texas
-        texas_match = re.search(r'(^[ \t]*TEXAS\b.*?)(?=^[ \t]*[^\w]*OKLAHOMA\b)', contents, re.DOTALL | re.IGNORECASE | re.MULTILINE)
-        texas_block = texas_match.group(1) if texas_match else ""
-        # print(texas_match.group(1))
+        # isolate the auction data from the direct receipt data
+        split1 = contents.split("Auction Receipts:", 1)[1] if len(contents.split("Auction Receipts:", 1)) == 2 else contents.split("Auction Receipts:", 1)[0]
+        # if(len())
+        text_no_direct = split1.split("Direct Receipts:", 1)[0]
+
+        # within auction data, search for texas block
+        texas_match = re.search(r'(?s)(?i)(?m)(^[ \t]*TEXAS\b.*?)(?=^[ \t]*[^\w]*OKLAHOMA|KANSAS|MISSOURI|IOWA|SOUTH DAKOTA|NORTH DAKOTA|MONTANA|NEBRASKA|COLORADO|WYOMING|VIRGINIA|WASHINGTON|ARKANSAS|TENNESSEE|FLORIDA|GEORGIA|MISSISSIPPI|ALABAMA|NEW MEXICO|NORTH CAROLINA|SOUTH CAROLINA\b)', text_no_direct)
+        texas_block = texas_match.group(0) if texas_match else "fail"
+        # print(texas_block)
 
         # normalize whitespace to account for newlines breaking up the reg exps
         texas_block_flat = re.sub(r'\s+', ' ', texas_block)
         # print(texas_block_flat)
 
         # extract texas auctions
-        
+        texas_auctions = re.search(r'\bTEXAS\s+([\d,\.]+)', texas_block_flat, re.DOTALL | re.IGNORECASE)
+        try:
+            texas_auctions = int(texas_auctions.group(1).replace(',', '').replace('.', '')) if texas_auctions else None
+        except:
+            print(len(split1))
+            # print(texas_block_flat)
+            print(filepath)
+            exit()
 
         # extract steers subsection
         steers_match = re.search(r'Steers:\s+(.*?)(?=Heifers:|$)', texas_block_flat, re.DOTALL | re.IGNORECASE)
@@ -47,13 +59,15 @@ def parse_usda_file(filepath):
         heifers_text = heifers_match.group(1) if heifers_match else ""
 
         # within steers text, parse "medium and large 1" and "medium large 1-2"
-        ml1_pattern = r'Medium\s*and\s*Large\s*1\s+(.*?)(?=Medium\s*and\s*Large\s*1-\s*2|$)'
-        ml1_2_pattern = r'Medium\s*and\s*Large\s*1[-–—]\s*2\s+(.*)$'
+        ml1_pattern = r'Medium\s*and\s*Large\s*1(?!\s*[-–—]\s*2)\s+(.*?)(?=Medium\s*and\s*Large\s*1\s*[-–—]\s*2|$)'
+        ml1_2_pattern = r'Medium\s*and\s*Large\s*1\s*[-–—]?\s*2\s+(.*)$'
+
 
         # steers medium and large 1
         steers_ml1 = re.search(ml1_pattern, steers_text, re.IGNORECASE)
         steers_ml1_text = steers_ml1.group(1) if steers_ml1 else ""
-        # print('\n\n' + steers_ml1_text + '\n\n')
+        # print(compute_avg(steers_ml1_text))
+        # print(steers_ml1_text + '\n\n')
 
         # steers medium and large 1-2
         steers_ml1_2 = re.search(ml1_2_pattern, steers_text, re.IGNORECASE)
@@ -85,6 +99,7 @@ def parse_usda_file(filepath):
             'week_ending_date': week_ending_date,
             'national_auctions': national_auctions,
             'national_total': national_total,
+            'texas_auctions': texas_auctions,
             'avg_price_steers_ML1': steers_ml1_avg,
             'avg_price_steers_ML1_2': steers_ml1_2_avg,
             'avg_price_heifers_ML1': heifers_ml1_avg,
@@ -93,7 +108,7 @@ def parse_usda_file(filepath):
 
 # helper function to calculate the weighted average     
 def compute_avg(text_block):
-    sale_matches = re.findall(r'\)\s*([\d]+\.[\d]+)', text_block)
+    sale_matches = re.findall(r'\b\d+\.\d+\b', text_block)
     # print(text_block + '\n')
     if not sale_matches:
         return None
@@ -113,7 +128,7 @@ print(df.to_string())
 # print(df.head())
 
 
-# data = parse_usda_file(r'National_Feeder_Stocker_Cattle_Summary\ams_3232_00001.txt')
+# data = parse_usda_file(r'National_Feeder_Stocker_Cattle_Summary\ams_3232_00219_01.txt')
 # print(data)
 
 df.to_csv('aggregated_data.csv', index=False)
