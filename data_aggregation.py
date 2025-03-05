@@ -100,4 +100,3 @@ aggregated_df.infer_objects(copy=False)
 aggregated_df['AVG_PRICE_AUCTION'] = pd.to_numeric(aggregated_df['AVG_PRICE_AUCTION'], errors='coerce')
 aggregated_df = aggregated_df.interpolate(method='linear')
 aggregated_df.to_csv('aggregated_data.csv')
-
