@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def print_all():
     print(stocker_data.head())
@@ -77,7 +78,7 @@ stocker_data.index = stocker_data.index.where(
 master_index = stocker_data.index
 # print(master_index)
 
-print(cpi_data.head())
+# print(cpi_data.head())
 
 # ALIGN ALL DATAFRAMES ON COMMON WEEKLY INDEX
 corn_futures = corn_futures.reindex(master_index).ffill()
@@ -86,13 +87,17 @@ us_mxn_rates = us_mxn_rates.reindex(master_index).ffill()
 cpi_data = cpi_data.reindex(master_index).ffill()
 diesel_prices = diesel_prices.reindex(master_index).ffill()
 
-print(cpi_data.head())
+# print(cpi_data.head())
 
 # print_all()
 
 # MERGE THE DATAFRAMES TOGETHER
 aggregated_df = pd.concat([stocker_data, corn_futures, cattle_futures, us_mxn_rates, cpi_data, diesel_prices], axis=1)
-aggregated_df = aggregated_df.ffill()
 
-# print(aggregated_df.to_string())
-# aggregated_df.to_csv('aggregated_data.csv')
+# DATA PREPROCESSING
+aggregated_df.replace("#DIV/0!", np.nan, inplace=True)
+aggregated_df.infer_objects(copy=False)
+aggregated_df['AVG_PRICE_AUCTION'] = pd.to_numeric(aggregated_df['AVG_PRICE_AUCTION'], errors='coerce')
+aggregated_df = aggregated_df.interpolate(method='linear')
+aggregated_df.to_csv('aggregated_data.csv')
+
