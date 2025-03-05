@@ -7,9 +7,15 @@ __pycache__/
 # Ignore log files
 *.log
 
+# Ignore temp files
+temp.py
+temp2.py
+temp3.py
+
 # Ignore IDE settings
 .vscode/
 .idea/
 
 # Ignore Folder
 National_Feeder_Stocker_Cattle_Summary
+data_sources
