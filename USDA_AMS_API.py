@@ -1,5 +1,3 @@
-# N/KUHW09nFD8o9atxoGTKaq5k7zHWWj0
-
 import requests, pandas as pd, os
 from dotenv import load_dotenv
 from requests.auth import HTTPBasicAuth
