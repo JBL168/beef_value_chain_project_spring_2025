@@ -131,4 +131,4 @@ print(df.to_string())
 # data = parse_usda_file(r'National_Feeder_Stocker_Cattle_Summary\ams_3232_00219_01.txt')
 # print(data)
 
-df.to_csv('aggregated_data.csv', index=False)
+df.to_csv('stocker_data.csv', index=False)
