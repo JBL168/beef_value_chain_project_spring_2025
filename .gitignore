@@ -8,9 +8,6 @@ __pycache__/
 *.log
 
 # Ignore temp files
-temp.py
-temp2.py
-temp3.py
 
 # Ignore IDE settings
 .vscode/
