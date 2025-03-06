@@ -54,6 +54,16 @@ try:
 except:
     print(r'features_data\us_mxn_exchange_rates.csv')
 
+try:
+    federal_interest_rates = pd.read_csv(r'features_data\federal_interest_rates.csv')
+    federal_interest_rates['DATE'] = pd.to_datetime(federal_interest_rates['DATE'])
+    federal_interest_rates = federal_interest_rates.sort_values('DATE', ignore_index=True).set_index('DATE')
+except:
+    print()
+    print(r'features_data\federal_interest_rates.csv')
+
+    
+
 # print_all()
 
 # RESAMPLE DAILY AND MONTHLY DATA TO WEEKLY
@@ -62,6 +72,7 @@ cattle_futures = cattle_futures.resample('W-FRI').mean()
 us_mxn_rates = us_mxn_rates.resample('W-FRI').mean()
 cpi_data = cpi_data.resample('W-FRI').ffill()
 diesel_prices = diesel_prices.resample('W-FRI').ffill()
+federal_interest_rates = federal_interest_rates.resample('W-FRI').ffill()
 
 # print(df_diesel_prices.to_string)
 # print(df_corn_futures.head())
@@ -86,13 +97,15 @@ cattle_futures = cattle_futures.reindex(master_index).ffill()
 us_mxn_rates = us_mxn_rates.reindex(master_index).ffill()
 cpi_data = cpi_data.reindex(master_index).ffill()
 diesel_prices = diesel_prices.reindex(master_index).ffill()
+federal_interest_rates = federal_interest_rates.reindex(master_index).ffill()
+
 
 # print(cpi_data.head())
 
 # print_all()
 
 # MERGE THE DATAFRAMES TOGETHER
-aggregated_df = pd.concat([stocker_data, corn_futures, cattle_futures, us_mxn_rates, cpi_data, diesel_prices], axis=1)
+aggregated_df = pd.concat([stocker_data, corn_futures, cattle_futures, us_mxn_rates, cpi_data, diesel_prices, federal_interest_rates], axis=1)
 
 # DATA PREPROCESSING
 aggregated_df.replace("#DIV/0!", np.nan, inplace=True)
