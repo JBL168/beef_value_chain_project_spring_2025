@@ -62,7 +62,19 @@ except:
     print()
     print(r'features_data\federal_interest_rates.csv')
 
-    
+try:
+    alfafa_hay_ppi = pd.read_csv(r'features_data\alfafa_hay_ppi.csv')
+    alfafa_hay_ppi['DATE'] = pd.to_datetime(alfafa_hay_ppi['DATE'])
+    alfafa_hay_ppi = alfafa_hay_ppi.sort_values('DATE', ignore_index=True).set_index('DATE')
+except:
+    print(r'features_data\alfafa_hay_ppi.csv')
+
+try:
+    corn_ppi = pd.read_csv(r'features_data\corn_ppi.csv')
+    corn_ppi['DATE'] = pd.to_datetime(corn_ppi['DATE'])
+    corn_ppi = corn_ppi.sort_values('DATE', ignore_index=True).set_index('DATE')
+except:
+    print(r'features_data\corn_ppi.csv')
 
 # print_all()
 
@@ -73,6 +85,8 @@ us_mxn_rates = us_mxn_rates.resample('W-FRI').mean()
 cpi_data = cpi_data.resample('W-FRI').ffill()
 diesel_prices = diesel_prices.resample('W-FRI').ffill()
 federal_interest_rates = federal_interest_rates.resample('W-FRI').ffill()
+alfafa_hay_ppi = alfafa_hay_ppi.resample('W-FRI').ffill()
+corn_ppi = corn_ppi.resample('W-FRI').ffill()
 
 # print(df_diesel_prices.to_string)
 # print(df_corn_futures.head())
@@ -98,6 +112,8 @@ us_mxn_rates = us_mxn_rates.reindex(master_index).ffill()
 cpi_data = cpi_data.reindex(master_index).ffill()
 diesel_prices = diesel_prices.reindex(master_index).ffill()
 federal_interest_rates = federal_interest_rates.reindex(master_index).ffill()
+alfafa_hay_ppi = alfafa_hay_ppi.reindex(master_index).ffill()
+corn_ppi = corn_ppi.reindex(master_index).ffill()
 
 
 # print(cpi_data.head())
@@ -105,7 +121,7 @@ federal_interest_rates = federal_interest_rates.reindex(master_index).ffill()
 # print_all()
 
 # MERGE THE DATAFRAMES TOGETHER
-aggregated_df = pd.concat([stocker_data, corn_futures, cattle_futures, us_mxn_rates, cpi_data, diesel_prices, federal_interest_rates], axis=1)
+aggregated_df = pd.concat([stocker_data, corn_futures, cattle_futures, us_mxn_rates, cpi_data, diesel_prices, federal_interest_rates, alfafa_hay_ppi, corn_ppi], axis=1)
 
 # DATA PREPROCESSING
 aggregated_df.replace("#DIV/0!", np.nan, inplace=True)
