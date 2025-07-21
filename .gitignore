@@ -16,9 +16,6 @@ __pycache__/
 # Ignore Folder
 National_Feeder_Stocker_Cattle_Summary
 data_sources
+ignore
 
 # Ignore other
-models/ignore.txt
-models/ignore2.txt
-models/ignore3.txt
-models/ignore4.txt
