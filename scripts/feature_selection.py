@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-data = pd.read_csv('aggregated_data.csv')
-data['DATE'] = pd.to_datetime(data['DATE'])
-data = data.sort_values('DATE', ignore_index=True).set_index('DATE').drop( # drop columns not used for training
+df = pd.read_csv('aggregated_data.csv')
+df['DATE'] = pd.to_datetime(df['DATE'])
+df = df.sort_values('DATE', ignore_index=True).set_index('DATE').drop( # drop columns not used for training
     ['avg_price_steers_ML1', 
      'avg_price_steers_ML1_2', 
      'avg_price_heifers_ML1', 
@@ -16,19 +16,22 @@ data = data.sort_values('DATE', ignore_index=True).set_index('DATE').drop( # dro
      'TEXAS_AUCTION_SALES', 
      ], axis=1)
 
-data['ΔCPI'] = data['CPI_US'].pct_change() * 100  # % change
-data['ΔFED'] = data['FEDERAL_INTEREST_RATE'].diff()  # absolute change in rate
+df['ΔCPI'] = df['CPI_US'].pct_change().bfill() * 100  # % change
+df['ΔFED'] = df['FEDERAL_INTEREST_RATE'].diff().bfill()  # absolute change in rate
+df['CORN_FEED_RATIO'] = df['CORN_FUTURES_TYPICAL_PRICE'] / df['FEEDER_CATTLE_FUTURES_TYPICAL_PRICE']
+df['DIESEL_RATIO'] = df['DIESEL_RETAIL_PRICE'] / df['FEEDER_CATTLE_FUTURES_TYPICAL_PRICE']
+df['DIESEL_LAG4'] = df['DIESEL_RETAIL_PRICE'].shift(4).bfill()   # ~1 month lag
 
 def plot_correlation_matrix(df, title):
     plt.figure(figsize=(8, 8))
     sns.heatmap(df.corr(), annot=True, cmap='coolwarm', center=0)#, fmt='.2f', square=True, linewidths=0.5)
     plt.title(title)
     plt.tight_layout()
-    plt.show()
+    # plt.show()
 
-plot_correlation_matrix(data,'')
+plot_correlation_matrix(df,'')
 
-target = data['AVG_PRICE_AUCTION']
+target = df['AVG_PRICE_AUCTION']
 
 plt.figure(figsize=(10, 5))
 plt.plot(target.index, target, label='Target Feature')
@@ -37,8 +40,8 @@ plt.ylabel('Average Auction Price')
 plt.xlabel('Date')
 plt.legend()
 plt.savefig('target_feature_plot.png', dpi=300)
-plt.show()
+# plt.show()
 
-data = data[['AVG_PRICE_AUCTION', 'FEEDER_CATTLE_FUTURES_TYPICAL_PRICE', 'US_MXN_RATES', 'ΔCPI', 'ΔFED']]
-data.to_csv('model_features.csv')
+df = df[['AVG_PRICE_AUCTION', 'FEEDER_CATTLE_FUTURES_TYPICAL_PRICE', 'US_MXN_RATES', 'ΔCPI', 'ΔFED', 'CORN_FEED_RATIO', 'DIESEL_RATIO']]
+df.to_csv('model_features.csv')
 
