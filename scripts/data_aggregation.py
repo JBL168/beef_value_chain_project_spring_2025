@@ -133,6 +133,9 @@ aggregated_df = pd.concat([
     # corn_ppi
 ], axis=1)
 
+aggregated_df = aggregated_df[~aggregated_df.index.duplicated(keep='first')]
+aggregated_df = aggregated_df.asfreq('W-FRI')
+
 # DATA PREPROCESSING
 aggregated_df.replace("#DIV/0!", np.nan, inplace=True)
 aggregated_df.infer_objects(copy=False)
